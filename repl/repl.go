@@ -54,6 +54,7 @@ func New(prompt string, timeout time.Duration) *REPL {
 		output:          os.Stdout,
 		stopChan:        make(chan struct{}),
 		lastCommandTime: time.Now().Unix(),
+		prefixCompleter: readline.NewPrefixCompleter(),
 	}
 
 	// Add default commands clear, exit, and help
@@ -63,7 +64,7 @@ func New(prompt string, timeout time.Duration) *REPL {
 		Action: func(args []string) (string, error) {
 			return r.Usage(), nil
 		},
-	})
+	}, []string{})
 
 	r.AddCommand(Command{
 		Name:  "exit",
@@ -71,7 +72,7 @@ func New(prompt string, timeout time.Duration) *REPL {
 		Action: func(args []string) (string, error) {
 			return "", r.Stop()
 		},
-	})
+	}, []string{})
 
 	r.AddCommand(Command{
 		Name:  "clear",
@@ -80,7 +81,7 @@ func New(prompt string, timeout time.Duration) *REPL {
 			readline.ClearScreen(r.output)
 			return "cleared terminal", nil
 		},
-	})
+	}, []string{})
 
 	go func() {
 		for {
@@ -125,16 +126,16 @@ func (r *REPL) Usage() string {
 	return printstring
 }
 
-// AddCommand registers the command provided in `cmd` with the REPL.
-func (r *REPL) AddCommand(cmd Command) {
+// AddCommand registers the command provided in `cmd` and its possible parameters with the REPL.
+func (r *REPL) AddCommand(cmd Command, cmdParams []string) {
 	r.commands[cmd.Name] = cmd
 
-	var completers []readline.PrefixCompleterInterface
-	for name := range r.commands {
-		completers = append(completers, readline.PcItem(name))
+	var params []readline.PrefixCompleterInterface
+	for _, cmdParam := range cmdParams {
+		params = append(params, readline.PcItem(cmdParam))
 	}
 
-	r.prefixCompleter = readline.NewPrefixCompleter(completers...)
+	r.prefixCompleter.SetChildren(append(r.prefixCompleter.GetChildren(), readline.PcItem(cmd.Name, params...)))
 }
 
 // eval evaluates a line that was input to the REPL.

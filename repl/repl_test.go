@@ -18,7 +18,7 @@ func TestREPLArgQuotes(t *testing.T) {
 			return "success", nil
 		},
 		Usage: "",
-	})
+	}, []string{})
 
 	_, err := r.eval("testcmd \"test arg with quotes and spaces\" testarg2")
 	if err != nil {
@@ -58,7 +58,7 @@ func TestREPLTimeout(t *testing.T) {
 			return "success", nil
 		},
 		Usage: "",
-	})
+	}, []string{})
 
 	time.Sleep(time.Second * 4)
 	_, err := r.eval("testcmd")
@@ -99,7 +99,7 @@ func TestREPLCmd(t *testing.T) {
 			return "success", nil
 		},
 		Usage: "test usage",
-	})
+	}, []string{})
 
 	res, err := r.eval("testcmd arg1 arg2")
 	if err != nil {
@@ -126,7 +126,7 @@ func TestREPLCmdError(t *testing.T) {
 			return "", testerr
 		},
 		Usage: "testusage",
-	})
+	}, []string{})
 
 	res, err := r.eval("testcmd")
 	if err != testerr {
